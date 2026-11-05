@@ -46,20 +46,18 @@ module control_unit(
     
     output reg halted
 );
-
-    reg [2:0] read_select1, read_select2;
     
     localparam FETCH = 2'b00;
     localparam DECODE = 2'b01;
     localparam EXECUTE = 2'b10;
     localparam HALT = 2'b11;
     
-    reg [1:0] state, next_state;
+    reg [1:0] state;
     
     // decide next state
     always @(posedge clk) begin
         if (reset) begin
-            next_state <= FETCH;
+            state <= FETCH;
             
             pc_enable <= 0;
             ir_load <= 0;
@@ -81,6 +79,9 @@ module control_unit(
             ir_load <= 0;
             
             write_en <= 0;
+            mem_write <= 0;
+            mem_read <= 0;
+            halted <= 0;
             
             case(state)
                 FETCH: begin
@@ -92,6 +93,9 @@ module control_unit(
                 
                 DECODE: begin
                     state <= EXECUTE;
+                    
+                    if (ir_opcode == 4'b0011)
+                        alu_sr1 <= ir_dr;
                 end
                 
                 EXECUTE: begin
@@ -135,12 +139,12 @@ module control_unit(
                 
                 HALT: begin
                     state <= HALT;
+                    
+                    halted <= 1;
                 end
                 
                 default: begin
                     state <= FETCH;
-                    
-                    halted <= 1;
                 end
             endcase
         end

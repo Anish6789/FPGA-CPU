@@ -25,8 +25,14 @@ module cpu(
     input wire reset,
     
     input wire imem_write_en,
-    input wire imem_write_address,
-    input wire imem_write_data,
+    input wire [7:0] imem_write_address,
+    input wire [15:0] imem_write_data,
+    
+    input wire [7:0] debug_address,
+    output wire [15:0] debug_data,
+    
+    input wire [2:0] debug_reg_address,
+    output wire [7:0] debug_reg_data,
     
     output wire halted
 );
@@ -76,14 +82,17 @@ module cpu(
         .address(pc)
     );
     
-    instruction_memory mem0(
+    instruction_memory imem0(
         .clk(clk),
         .address(pc),
         .instruction(instruction_mem),
     
-        .write_enable(mem_write_en),
-        .write_address(mem_address),
-        .write_data(mem_write_data)
+        .write_enable(imem_write_en),
+        .write_address(imem_write_address),
+        .write_data(imem_write_data),
+        
+        .debug_address(debug_address),
+        .debug_data(debug_data)
     );
      
     instruction_reg ir0(
@@ -92,11 +101,7 @@ module cpu(
         .load(ir_load),
         
         .instruction_in(instruction_mem),
-        .instruction(instruction),
-        
-        .write_enable(loader_write_enable),
-        .write_address(loader_write_address),
-        .write_data(loader_write_data)
+        .instruction(instruction)
     );
     
     assign ir_opcode = instruction[15:12];
@@ -127,8 +132,8 @@ module cpu(
         .alu_sr1(alu_sr1),
         .alu_sr2(alu_sr2),
         
-        .mem_write(mem_write_en),
-        .mem_read(mem_read_en),
+        .mem_write(dmem_write_en),
+        .mem_read(dmem_read_en),
         
         .halted(halted)
     );
@@ -145,11 +150,14 @@ module cpu(
         .write_enable(write_en),
         .write_select(write_select),
         
+        .debug_address(debug_reg_address),
+        .debug_data(debug_reg_data),
+        
         .alu_select(alu_select),
         .alu_result(alu_result),
         
-        .mem_read_data(mem_read_data),
-        .mem_write_data(mem_write_data)
+        .mem_read_data(dmem_read_data),
+        .mem_write_data(dmem_write_data)
     );
     
     data_memory dmem0(
@@ -158,9 +166,9 @@ module cpu(
         
         .address(ir_imm),
         
-        .write_enable(mem_write_en),
-        .write_data(mem_write_data),
+        .write_enable(dmem_write_en),
+        .write_data(dmem_write_data),
         
-        .read_data(mem_read_data)
+        .read_data(dmem_read_data)
     );
 endmodule

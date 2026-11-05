@@ -30,6 +30,7 @@ module uart_rx(
 
     localparam integer BAUD_RATE = 115200;
     localparam integer OVERSAMPLE = 16;
+    localparam integer CLKS_PER_BIT = 868;
     
     // 100,000,000 / (115200*16) ≈ 54 clock cycles per UART bit
     localparam integer TICKS_PER_BIT = 54;
@@ -41,9 +42,8 @@ module uart_rx(
     localparam STOP  = 2'b11;
     
     // storage
-    reg [1:0] state, next_state;
-    reg [5:0] baud_count;
-    reg [3:0] sample_count;
+    reg [1:0] state;
+    reg [9:0] baud_count;
     reg [2:0] bit_count;
     reg [7:0] rx_temp;
     
@@ -64,89 +64,92 @@ module uart_rx(
     
     // decide next state
     always @(posedge clk) begin
-        if (reset) next_state <= IDLE;
+        if (reset) state <= IDLE;
         
-        else if (baud_count == TICKS_PER_BIT - 1) begin
+        else begin
             case (state)
                 IDLE: begin
-                    if (!rx2)
-                        next_state <= START;
+                    if (rx2 == 0)
+                        state <= START;
                 end
                 
                 START: begin
-                    if (sample_count == 4'd7) begin
-                        if (!rx2)
-                            next_state <= DATA;
+                    if (baud_count == CLKS_PER_BIT / 2 - 1) begin
+                        if (rx2 == 0)
+                            state <= DATA;
                         else
-                            next_state <= IDLE;
+                            state <= IDLE;
                     end
                 end
                 
                 DATA: begin
-                    if (sample_count == 4'd15) begin
-                        if(bit_count == 3'd7)
-                            next_state <= STOP;
-                    end
+                    if (baud_count == CLKS_PER_BIT - 1 && bit_count == 3'd7)
+                        state <= STOP;
                 end
                 
                 STOP: begin
-                    if (sample_count == 4'd15)
-                        next_state <= IDLE;
+                    if (baud_count == CLKS_PER_BIT - 1)
+                        state <= IDLE;
                 end
-                default: next_state <= IDLE;
+                default: state <= IDLE;
             endcase
         end
     end
 
     // update variables
     always @(posedge clk) begin
-        if (baud_count == TICKS_PER_BIT - 1) begin
+        if (reset) begin
+            bit_count <= 0;
             baud_count <= 0;
+            rx_temp <= 0;
+            data <= 0;
+            valid <= 0;
+        end
+         
+        else begin
+            valid <= 0;
             
             case (state)
                 IDLE: begin
-                    sample_count <= 0;
                     bit_count <= 0;
-                    baud_count  <= 0;
-                    rx_temp   <= 0;
-                    data        <= 0;
-                    valid       <= 0;
+                    baud_count <= 0;
                 end
+                
                 START: begin
-                    if (sample_count == 4'd7)
-                        sample_count <= 0;
+                    if (baud_count == (CLKS_PER_BIT / 2) - 1)
+                        baud_count <= 0;
                     else
-                        sample_count <= sample_count + 1;
+                        baud_count <= baud_count + 1;
                 end
                 DATA: begin
-                    if (sample_count == 4'd15) begin
-                        sample_count <= 0;
+                    if (baud_count == CLKS_PER_BIT - 1) begin
+                        baud_count <= 0;
                         rx_temp[bit_count] <= rx2;                                                                                                                                                                                 
                         if (bit_count != 3'd7)
                             bit_count <= bit_count + 1;
                     end
                     else
-                        sample_count <= sample_count + 1;
+                        baud_count <= baud_count + 1;
                 end
                 STOP: begin
-                    if (sample_count == 4'd15) begin
-                        sample_count <= 0;
+                    if (baud_count == CLKS_PER_BIT - 1) begin
+                        baud_count <= 0;
                         
-                        data <= rx_temp;
-                        valid <= 1'b1;
+                        if (rx2 == 1) begin
+                            data <= rx_temp;
+                            valid <= 1'b1;
+                        end
                     end
                     else
-                        sample_count <= sample_count + 1;
+                        baud_count <= baud_count + 1;
                 end
             endcase
         end
-        else
-            baud_count <= baud_count + 1;
     end
     
     // change state
-    always @(posedge clk) begin
-        if (reset) state <= IDLE;
-        else state <= next_state;
-    end 
+//    always @(posedge clk) begin
+//        if (reset) state <= IDLE;
+//        else state <= next_state;
+//    end 
 endmodule

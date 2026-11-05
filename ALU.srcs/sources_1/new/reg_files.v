@@ -31,24 +31,19 @@ module reg_files(
     
     input wire [7:0] write_data,
     input wire write_enable,
-    input wire [2:0] write_select
+    input wire [2:0] write_select,
+    
+    input wire [2:0] debug_address,
+    output wire [7:0] debug_data
 );
 
     reg [7:0] registers[0:7];
-
-//    assign R0 = registers[0];
-//    assign R1 = registers[1];
-//    assign R2 = registers[2];
-//    assign R3 = registers[3];
-//    assign R4 = registers[4];
-//    assign R5 = registers[5];
-//    assign R6 = registers[6];
-//    assign R7 = registers[7];
-
     integer i;
     
     assign read_data1 = registers[read_select1];
     assign read_data2 = registers[read_select2];
+    
+    assign debug_data = registers[debug_address];
     
     always @(posedge clk) begin
         if (reset) begin

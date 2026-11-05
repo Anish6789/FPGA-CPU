@@ -32,6 +32,9 @@ module cpu_datapath(
     input wire write_enable,
     input wire [2:0] write_select,
     
+    input wire [2:0] debug_address,
+    output wire [7:0] debug_data,
+    
     input wire [2:0] alu_select,
     output wire [9:0] alu_result,
     
@@ -54,7 +57,10 @@ module cpu_datapath(
         
         .write_data(write_data),
         .write_enable(write_enable),
-        .write_select(write_select)
+        .write_select(write_select),
+        
+        .debug_address(debug_address),
+        .debug_data(debug_data)
     );
     
     ALU_func alu0(

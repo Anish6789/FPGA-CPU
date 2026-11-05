@@ -26,29 +26,20 @@ module instruction_memory(
     input wire clk,
     
     input  wire [7:0] address,
+    output wire [15:0] instruction,
     
     input wire write_enable,
-    input wire [7:0] write_data,
+    input wire [15:0] write_data,
     input wire [7:0] write_address,
     
-    output wire [15:0] instruction
+    input wire [7:0] debug_address,
+    output wire [15:0] debug_data
 );
  
     reg [15:0] mem[0:255];
-    integer i;
- 
-    initial begin
-        for (i = 0; i < 256; i = i + 1)
-            mem[i] = 16'h0000;
-            
-//        mem[0] = 16'h1019; // LOAD R0 = 10
-//        mem[1] = 16'h3014; // LOAD R1 = 3
-//        mem[2] = 16'h2214; // R0 = R0 + R1
-//        mem[3] = 16'h0609; // R1 = R0 - R1
-//        mem[3] = 16'hF000; // HALT
-    end
  
     assign instruction = mem[address];
+    assign debug_data = mem[debug_address];
     
     always @(posedge clk) begin
         if (write_enable) begin
