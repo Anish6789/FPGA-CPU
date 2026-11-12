@@ -28,8 +28,11 @@ module cpu(
     input wire [7:0] imem_write_address,
     input wire [15:0] imem_write_data,
     
-    input wire [7:0] debug_address,
-    output wire [15:0] debug_data,
+    input wire [7:0] imem_debug_address,
+    output wire [15:0] imem_debug_data,
+    
+    input wire [7:0] dmem_debug_address,
+    output wire [7:0] dmem_debug_data,
     
     input wire [2:0] debug_reg_address,
     output wire [7:0] debug_reg_data,
@@ -91,8 +94,8 @@ module cpu(
         .write_address(imem_write_address),
         .write_data(imem_write_data),
         
-        .debug_address(debug_address),
-        .debug_data(debug_data)
+        .debug_address(imem_debug_address),
+        .debug_data(imem_debug_data)
     );
      
     instruction_reg ir0(
@@ -169,6 +172,9 @@ module cpu(
         .write_enable(dmem_write_en),
         .write_data(dmem_write_data),
         
-        .read_data(dmem_read_data)
+        .read_data(dmem_read_data),
+        
+        .debug_address(dmem_debug_address),
+        .debug_data(dmem_debug_data)
     );
 endmodule

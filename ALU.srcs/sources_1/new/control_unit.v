@@ -129,6 +129,7 @@ module control_unit(
                         4'b0011: begin
                             mem_write <= 1;
                             mem_read <= 0;
+                            alu_sr1 <= ir_dr;
                         end
                         
                         default: begin

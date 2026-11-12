@@ -78,6 +78,8 @@ module cpu_datapath(
             
             4'b0010: write_data = mem_read_data;
             
+            4'b0011: write_data = read_data1;
+            
             default: write_data = 8'd0;
         endcase
     end

@@ -29,10 +29,13 @@ module data_memory(
     input wire write_enable,
     input wire [7:0] write_data,
     
-    output wire [7:0] read_data
+    output wire [7:0] read_data,
+    
+    input wire [7:0] debug_address,
+    output wire [15:0] debug_data
 );
 
-    reg [7:0] memory [0:255];
+    reg [7:0] memory[0:255];
     integer i;
     
     initial begin
@@ -41,6 +44,7 @@ module data_memory(
     end
     
     assign read_data = memory[address];
+    assign debug_data = memory[debug_address];
     
     always @(posedge clk) begin
         if (write_enable)
