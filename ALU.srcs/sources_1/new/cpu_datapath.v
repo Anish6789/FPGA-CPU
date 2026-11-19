@@ -39,7 +39,12 @@ module cpu_datapath(
     output wire [9:0] alu_result,
     
     input wire [7:0] mem_read_data,
-    output wire [7:0] mem_write_data 
+    output wire [7:0] mem_write_data,
+    
+    input wire flags_write_en,
+    output wire pos,
+    output wire zero,
+    output wire neg
 );
     reg [7:0] write_data;
     wire [7:0] read_data1, read_data2;
@@ -68,6 +73,17 @@ module cpu_datapath(
         .B(read_data2),
         .opcode(alu_select),
         .result(alu_result)
+    );
+    
+    flags_reg fr0(
+        .clk(clk),
+        .reset(reset),
+        .write_enable(flags_write_en),
+        .result(alu_result[7:0]),
+        
+        .pos(pos),
+        .zero(zero),
+        .neg(neg)
     );
     
     always @(*) begin

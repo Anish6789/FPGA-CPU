@@ -9,17 +9,12 @@
 // Instruction encoding (matches reg_files/ALU_func):
 // ALU:  [0000][DR][SR1][ALU opcode (3 bits)][SR2]
 // LOAD(imm): [0001][DR] 0 [8-bit immediate]
-// LOAD(mem): [0010][DR] 0 [8-bit address]
+// LOAD(mem\): [0010][DR] 0 [8-bit address]
 // STORE: [0011][SR] 0 [8-bit address]
+// BRANCH: [0100] [nzp] 0 [8-bit address]
+// HALT: [1111] 0000 0000 0000
 //     all register addresses are 3 bits
 //     ALU opcodes: 000=ADD 001=SUB 010=MUL 011=DIV 100=MOD
-//
-// The example program below is just a starting placeholder:
-//   0: LOAD R0 = 10        -> 0001 000 0 0000 1010 = 16'h100A
-//   1: LOAD R1 = 3         -> 0001 001 0 0000 0011 = 16'h1203
-//   2: ADD, dest = R2      -> R2 <= R0 + R1 = 13     -> 0000 010 000 000 001 = 16'h0401
-//   3: SUB, dest = R3      -> R3 <= R0 - R1 = 13 - 3 = 10 -> 0000 011 000 001 001 = 16'h0209
-//   4: HALT                -> 1111 0000 0000 0000 = 16'hF000
 //////////////////////////////////////////////////////////////////////////////////
  
 module instruction_memory(

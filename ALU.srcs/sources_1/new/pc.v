@@ -24,12 +24,16 @@ module pc(
     input wire clk,
     input wire reset,
     input wire enable,
+    input wire pc_jmp,
+    input wire [7:0] jmp_address,
     output reg [7:0] address
 );
  
     always @(posedge clk) begin
         if (reset)
             address <= 8'd0;
+        else if (pc_jmp)
+            address <= jmp_address;
         else if (enable)
             address <= address + 8'd1;
     end

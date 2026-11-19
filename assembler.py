@@ -55,7 +55,7 @@ def assemble(command):
         else:
             address = int(parts[2][1:-1])
 
-            if (address > 255):
+            if (address < 0 or address > 255):
                 raise ValueError("Invalid Memory Address")
 
             instruction = ((0b0010 << 12) |
@@ -70,11 +70,31 @@ def assemble(command):
         sr = reg_num(parts[1])
         address = int(parts[2][1:-1])
 
-        if (address > 255):
+        if (address < 0 or address > 255):
             raise ValueError("Invalid Memory Address")
 
         instruction = ((0b0011 << 12) |
                        (sr << 9) |
+                       (address))
+
+    #branch
+    elif (operation.startswith("j")):
+        condition = operation[1:]
+        for c in condition:
+            if (c not in "nzp"):
+                raise ValueError("Invalid branch condition")
+
+        address = int(parts[1])
+        if (address < 0 or address > 255):
+            raise ValueError("Invalid Memory Address")
+
+        n = int("n" in condition)
+        z = int("z" in condition)
+        p = int("p" in condition)
+        nzp = (n << 2) | (z << 1) | p;
+
+        instruction = ((0b0100 << 12) |
+                       (nzp << 9) |
                        (address))
 
     #halt
@@ -87,14 +107,17 @@ def assemble(command):
     return instruction
 
 # UART (same as FPGA)
-# port = input("COM port (ex. COM4): ")
-ser = serial.Serial("COM5", 115200)
+port = input("COM port number: ")
+ser = serial.Serial("COM" + port, 115200)
 
 while(True):
     command = input("> ")
 
     try:
         instruction = assemble(command)
+
+        print(f"Binary: {instruction:016b}")
+        print(f"Hex:    {instruction:04X}")
 
         high_byte = (instruction >> 8) & 0xFF
         low_byte = instruction & 0xFF

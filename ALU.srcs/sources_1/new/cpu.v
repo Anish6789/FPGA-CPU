@@ -44,6 +44,7 @@ module cpu(
     // pc
     wire [7:0] pc;
     wire pc_enable;
+    wire pc_jmp;
     
     // inst memory
     wire [15:0] instruction_mem;
@@ -70,6 +71,9 @@ module cpu(
     wire dmem_write_en;
     wire dmem_read_en;
     
+    wire pos, zero, neg;
+    wire flags_write_en;
+    
     // datapath
     wire [9:0] alu_result;
     
@@ -82,6 +86,8 @@ module cpu(
         .clk(clk),
         .reset(reset),
         .enable(pc_enable),
+        .pc_jmp(pc_jmp),
+        .jmp_address(ir_imm),
         .address(pc)
     );
     
@@ -126,6 +132,7 @@ module cpu(
         .ir_imm(ir_imm),
         
         .pc_enable(pc_enable),
+        .pc_jmp(pc_jmp),
         .ir_load(ir_load),
         
         .write_en(write_en),
@@ -137,6 +144,11 @@ module cpu(
         
         .mem_write(dmem_write_en),
         .mem_read(dmem_read_en),
+        
+        .pos(pos),
+        .zero(zero),
+        .neg(neg),
+        .flags_write_en(flags_write_en),
         
         .halted(halted)
     );
@@ -160,7 +172,12 @@ module cpu(
         .alu_result(alu_result),
         
         .mem_read_data(dmem_read_data),
-        .mem_write_data(dmem_write_data)
+        .mem_write_data(dmem_write_data),
+        
+        .flags_write_en(flags_write_en),
+        .pos(pos),
+        .zero(zero),
+        .neg(neg)
     );
     
     data_memory dmem0(

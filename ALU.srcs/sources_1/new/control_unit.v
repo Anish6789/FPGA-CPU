@@ -32,6 +32,7 @@ module control_unit(
     input wire [7:0] ir_imm, // ir[7:0]
     
     output reg pc_enable,
+    output reg pc_jmp,
     output reg ir_load,
     
     output reg write_en,
@@ -43,6 +44,11 @@ module control_unit(
     
     output reg mem_write,
     output reg mem_read,
+    
+    input wire pos,
+    input wire zero,
+    input wire neg,
+    output reg flags_write_en,
     
     output reg halted
 );
@@ -60,6 +66,7 @@ module control_unit(
             state <= FETCH;
             
             pc_enable <= 0;
+            pc_jmp <= 0;
             ir_load <= 0;
             
             write_en <= 0;
@@ -72,15 +79,19 @@ module control_unit(
             mem_write <= 0;
             mem_read <= 0;
             
+            flags_write_en <= 0;
+            
             halted <= 0;
         end
         else begin
             pc_enable <= 0;
+            pc_jmp <= 0;
             ir_load <= 0;
             
             write_en <= 0;
             mem_write <= 0;
             mem_read <= 0;
+            flags_write_en <= 0;
             halted <= 0;
             
             case(state)
@@ -93,9 +104,6 @@ module control_unit(
                 
                 DECODE: begin
                     state <= EXECUTE;
-                    
-                    if (ir_opcode == 4'b0011)
-                        alu_sr1 <= ir_dr;
                 end
                 
                 EXECUTE: begin
@@ -112,6 +120,8 @@ module control_unit(
                             
                             write_en <= 1;
                             write_select <= ir_dr;
+                            
+                            flags_write_en <= 1;
                         end
                         
                         4'b0001: begin
@@ -130,6 +140,10 @@ module control_unit(
                             mem_write <= 1;
                             mem_read <= 0;
                             alu_sr1 <= ir_dr;
+                        end
+                        
+                        4'b0100: begin
+                            pc_jmp <= (ir_dr == 3'b000) | (|(ir_dr & {neg, zero, pos}));
                         end
                         
                         default: begin
